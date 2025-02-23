@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Order Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin-bottom: 20px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .admin-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            display: none;
+        }
+        .review-container {
+            display: none;
+            margin-top: 15px;
+        }
+        .whatsapp-btn {
+            background-color: #25D366;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+        .whatsapp-icon {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Order Form</h2>
+        <form id="orderForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" required>
+            
+            <label for="order">Order Details:</label>
+            <textarea id="order" required></textarea>
+            
+            <button type="button" onclick="toggleReview()">Review Order</button>
+        </form>
+        
+        <!-- Initially hidden review container -->
+        <div id="review" class="review-container"></div>
+    </div>
+    
+    <button onclick="checkAdminAccess()">Admin Panel</button>
+    <div id="adminPanel" class="admin-container"></div>
+
+    <!-- WhatsApp contact button -->
+    <a href="https://wa.me/1234567890?text=Hello,%20I%20would%20like%20to%20inquire%20about%20my%20order." target="_blank">
+        <button class="whatsapp-btn">
+            <span class="whatsapp-icon">📱</span> Contact Us on WhatsApp
+        </button>
+    </a>
+
+    <script>
+        function toggleReview() {
+            let name = document.getElementById('name').value;
+            let order = document.getElementById('order').value;
+            let reviewDiv = document.getElementById('review');
+            
+            if (reviewDiv.style.display === 'none') {
+                if (name && order) {
+                    reviewDiv.innerHTML = 
+                        `<h3>Review Your Order</h3>
+                        <p><strong>Name:</strong> ${name}</p>
+                        <p><strong>Order:</strong> ${order}</p>
+                        <button onclick="confirmSubmission()">Submit Order</button>`;
+                    reviewDiv.style.display = 'block';
+                } else {
+                    alert('Please fill in all fields.');
+                }
+            } else {
+                reviewDiv.style.display = 'none';
+            }
+        }
+
+        function confirmSubmission() {
+            let confirmSubmit = confirm("Are you sure you want to submit your order?");
+            if (confirmSubmit) {
+                let name = document.getElementById('name').value;
+                let order = document.getElementById('order').value;
+                
+                let orders = JSON.parse(localStorage.getItem("orders")) || [];
+                orders.push({ name, order });
+                localStorage.setItem("orders", JSON.stringify(orders));
+                
+                alert("Your order has been submitted successfully!");
+                document.getElementById("orderForm").reset();
+                document.getElementById("review").style.display = 'none';
+            }
+        }
+
+        function checkAdminAccess() {
+            let passcodeInput = document.createElement('input');
+            passcodeInput.type = 'password';
+            passcodeInput.maxLength = 4; // Limit to 4 digits
+            passcodeInput.placeholder = 'Enter 4-digit Passcode';
+            document.body.appendChild(passcodeInput);
+            
+            passcodeInput.focus();
+
+            passcodeInput.addEventListener('input', function() {
+                if (passcodeInput.value.length === 4) {
+                    checkPasscode(passcodeInput.value);
+                }
+            });
+        }
+
+        function checkPasscode(passcode) {
+            if (passcode === "1234") {
+                displayOrders();
+            } else {
+                alert("Incorrect passcode!");
+            }
+            // Remove the passcode input field after check
+            let passcodeInput = document.querySelector('input[type="password"]');
+            if (passcodeInput) {
+                passcodeInput.remove();
+            }
+        }
+
+        function displayOrders() {
+            let orders = JSON.parse(localStorage.getItem("orders")) || [];
+            let adminPanel = document.getElementById("adminPanel");
+            
+            if (orders.length === 0) {
+                adminPanel.innerHTML = "<p>No orders submitted yet.</p>";
+            } else {
+                adminPanel.innerHTML = "<h3>Submitted Orders</h3>" + 
+                    orders.map(order => `<p><strong>Name:</strong> ${order.name}<br><strong>Order:</strong> ${order.order}</p>`).join("");
+            }
+            
+            adminPanel.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
